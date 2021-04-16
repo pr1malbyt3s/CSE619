@@ -1,67 +1,108 @@
+from collections import deque
+
+# Reference: https://www.geeksforgeeks.org/building-an-undirected-graph-and-finding-shortest-path-using-dictionaries-in-python/
+# Breadth First Search function to perform BFS traversal on a set of provided vertices: 
+def BFS(graph, source, destination):
+    # Initiate an empty list which will capture explored vertices:
+    explored = []
+    # Create a queue object which will hold vertices to be explored: 
+    queue = deque()
+    # Add the source vertex to the queue:
+    queue.append(source)
+    # If the source and destination are the same, distance is zero:
+    if source == destination:
+        return 0
+    # While the queue is not empty:
+    while queue:
+        # Create a path from the queue not including the parent vertex:
+        path = queue.popleft()
+        # Assess the vertex at the end of the path:
+        vertex = path[-1]
+        # If the vertex hasn't been explored:
+        if vertex not in explored:
+            # Get its neighbors from the graph:
+            neighbors = graph[vertex]
+            # Iterate through each neighbor:
+            for neighbor in neighbors:
+                # Form a new path from the current path:
+                new_path = list(path)
+                # Add the neighbor to the new path:
+                new_path.append(neighbor)
+                # Append the new path to the queue:
+                queue.append(new_path)
+                # Check if this neighbor is the destination:
+                if neighbor == destination:
+                    # If so, the number of nodes in the path minus 1 is the distance from source:
+                    return len(new_path) - 1
+            # Add the vertex to the explored list:
+            explored.append(vertex)
+    # If there is no path to destination, the distance is infinite:
+    return 'Infinite'
+
+# Breadth First Run function to facilitate conducting BFS for entire graph:
+def BFS_Run(graph):
+    # Dict to store the distances from source for each vertex:
+    distance = {}
+    # Iterate through the vertices:
+    for vertex in graph:
+        # Use BFS to get distance to each from source:
+        distance[vertex] = BFS(graph, list(graph.keys())[0], vertex)
+    # Print the BFS results using the vertex and its found distance:
+    print("BFS Results")
+    for key in distance:
+        print("Vertex:", key, "\tDistance:", distance[key])
+    print()
+
 # Reference: https://www.techiedelight.com/arrival-departure-time-vertices-dfs/
-# A class to represent a graph object
-class Graph:
-    def __init__(self, edges, N):
- 
-        # A list of lists to represent an adjacency list
-        self.adjList = [[] for _ in range(N)]
- 
-        # add edges to the undirected graph
-        for (src, dest) in edges:
-            self.adjList[src].append(dest)
- 
- 
-# Function to perform DFS traversal on the graph on a graph
-def DFS(graph, v, discovered, discover, finish, time):
- 
+# Depth First Search Function to perform DFS traversal on a provided graph vertex:
+def DFS(graph, vertex, discovered, discover, finish, time):
+    # Set time for capturing discover and finish times:
     time = time + 1
- 
-    # set the arrival time of vertex `v`
-    discover[v] = time
- 
-    # mark vertex as discovered
-    discovered[v] = True
- 
-    for i in graph.adjList[v]:
-        if not discovered[i]:
-            time = DFS(graph, i, discovered, discover, finish, time)
- 
+    # Set the discover/arrival time of vertex v:
+    discover[vertex] = time
+    # Mark currently assessed vertex as discovered:
+    discovered[vertex] = True
+    # Iterate through the graph edges for the vertex, repeating DFS is vertex not yet discovered:
+    for letter in graph[vertex]:
+        if not discovered.get(letter):
+            time = DFS(graph, letter, discovered, discover, finish, time)
+    # Increment the time to capture finishing for the vertex:
     time = time + 1
- 
-    # set departure time of vertex `v`
-    finish[v] = time
- 
+    # Set the finishing/departure time of vertex v:
+    finish[vertex] = time
+    # Return the time:
     return time
- 
- 
-if __name__ == '__main__':
- 
-    # List of graph edges as per the above diagram
-    # q=0, r=1, s=2, t=3, u=4, v=5, w=6, x=7, y=8, z=9
-    edges = [(0, 2), (0, 3), (0, 6), (1, 4), (1, 8), (2, 5), (3, 7), (3, 8), (4, 8), (5, 6), (6, 2), (7, 9), (8, 0), (9, 7)]
- 
-    # total number of nodes in the graph
-    N = 10
- 
-    # build a graph from the given edges
-    graph = Graph(edges, N)
- 
-    # list to store the arrival time of vertex
-    discover = [None] * N
- 
-    # list to store the departure time of vertex
-    finish = [None] * N
- 
-    # Mark all the vertices as not discovered
-    discovered = [False] * N
+
+# Depth First Search Run function to facilitate conducting DFS for entire graph:
+def DFS_Run(graph):
+    # Dict to store the discover times of each vertex:
+    discover = {}
+    # Dict to store the finishing times of each vertex:
+    finish = {}
+    # Dict to store discovery of each vertex:
+    discovered = {}
+    # Set the start time to 0:
     time = 0
- 
-    # Perform DFS traversal from all undiscovered nodes to
-    # cover all unconnected components of a graph
-    for i in range(N):
-        if not discovered[i]:
-            time = DFS(graph, i, discovered, discover, finish, time)
- 
-    # print arrival and departure time of each vertex in DFS
-    for i in range(N):
-        print("Vertex", i, (discover[i], finish[i]))
+    # Perform DFS for all vertices and available edges in the graph:
+    for vertex in graph:
+        if not discovered.get(vertex):
+            time = DFS(graph, vertex, discovered, discover, finish, time)
+    # Print DFS results using D and F times of each vertex in DFS:
+    print("DFS Results:")
+    for key in graph:
+        print("Vertex:", key, "\tDiscovery Time:", discover[key], "\tFinishing Time:", finish[key])
+    # Print Topological Sorting using descending finishing times by vertex:
+    print("\nTopological Sorting:")
+    for k, v in sorted(finish.items(), key = lambda item: item[1], reverse=True):
+        print("Vertex:", k, "\tFinishing Time:", v)
+    print()
+if __name__ == '__main__':
+    # Graphs:
+    graph1 = {'q':['s', 't', 'w'], 'r':['u', 'y'], 's':['v'], 't':['x', 'y'], 'u':['y'], 'v':['w'], 'w':['s'], 'x':['z'], 'y':['q'], 'z':['x']}
+    graph2 = {'n':['o', 'q', 'u'], 'm':['q', 'r', 'x'], 'o':['r', 's', 'v'], 'p':['o', 's', 'z'], 'q':['t'], 'r':['u', 'y'], 's':['r'], 't':[], 'u':['t'], 'v':['w', 'x'], 'w':['z'], 'x':[], 'y':['v'], 'z':[]}
+    # Run the BFS functions:
+    BFS_Run(graph1)
+    BFS_Run(graph2)
+    # Run the DFS functions:
+    DFS_Run(graph1)
+    DFS_Run(graph2)
